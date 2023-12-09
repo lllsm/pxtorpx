@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="static/css/mian.css">
+</head>
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+
+<body>
+  <div id="app">
+    <div class="item flex-center">
+      <el-card class="box-card flex-center">
+        <div>
+          <el-card class="flex-center">
+            <div class="flex-center">
+              <div>
+                <el-input style="width: 100px;" placeholder="请输入单位如：px" v-model="frontUnit">
+                  <template slot="prepend">1</template>
+                </el-input>
+              </div>
+              <h2 style="margin: 10px;">TO</h2>
+              <div>
+                <el-input style="width: 100px;" placeholder="比例" v-model="value">
+                </el-input>
+              </div>
+              <div>
+                <el-input style="width: 100px;" placeholder="请输入内容" v-model="behindUnit">
+                </el-input>
+              </div>
+              <div style="margin-left: 10px;">
+                <el-radio v-model="radio" label="A">乘积</el-radio>
+                <el-radio v-model="radio" label="B">除余</el-radio>
+              </div>
+            </div>
+          </el-card>
+        </div>
+        <div>
+          <div class="entrance flex-center">
+            <el-input ref="entrance" type="textarea" :rows="10" placeholder="请输入要处理的CSS,也可直接输入数字！" v-model="entrance">
+            </el-input>
+          </div>
+          <div class="exit">
+            <el-input ref="exit" type="textarea" :rows="10" placeholder="处理完成的CSS" v-model="exit">
+            </el-input>
+          </div>
+          <div class=" success flex-center">
+            <el-button type="success" @click="success" round>确认转换</el-button>
+            <el-button type="success" @click="setText" round>复制结果</el-button>
+          </div>
+        </div>
+      </el-card>
+    </div>
+  </div>
+</body>
+<!-- import Vue before Element -->
+<!-- import JavaScript -->
+<script src="static/js/element.js"></script>
+<script>
+  new Vue({
+    el: '#app',
+    data: function () {
+      return {
+        entrance: '',
+        exit: '',
+        frontUnit: 'px',
+        behindUnit: 'rpx',
+        value: 2,
+        radio: 'A'
+      }
+    },
+    created() {
+      this.getText()
+    },
+    methods: {
+      success(e) {
+        console.log(this.entrance)
+        this.manage()
+      },
+      getText() {
+        let css = null;
+        navigator.clipboard.readText()
+          .then((text) => {
+            if (text) {
+              this.$message({
+                message: '已GET到您复制的内容！',
+                type: 'success'
+              });
+              this.entrance = text;
+            }
+            this.success()
+          })
+          .catch(err => {
+            console.error("出错")
+          })
+      },
+      setText() {
+        if (this.exit != '') {
+          navigator.clipboard.writeText(this.exit)
+          navigator.clipboard.writeText(this.exit)
+            .then(() => {
+              this.entrance = '';
+              this.$message({
+                message: '恭喜你，恭喜你转换成功，已设置到粘贴板！',
+                type: 'success'
+              });
+            })
+            .catch(err => {
+              this.entrance = '';
+              this.$message({
+                message: '写入粘贴板失败，请手动复制！',
+                type: 'warning'
+              });
+              console.log(err)
+            })
+        } else {
+          this.$message({
+            message: '没有结果！',
+            type: 'warning'
+          });
+        }
+      },
+      manage(e) {
+        let type = this.radio;
+        if (this.entrance) {
+          console.log(Number(this.entrance))
+          if (isNaN(Number(this.entrance))) {
+            let css = this.entrance;
+            var reg = new RegExp('[0-9]{0,4}' + this.frontUnit, 'g');
+            console.log(reg);
+            var arr = css.match(reg);
+            let str = css;
+            console.log(arr, str)
+            arr.map((item, index) => {
+              if (css.indexOf(item) != -1) {
+                let item_num = item.replace(this.frontUnit, "");
+                item_num = parseInt(item_num)
+                console.log("item_num", item_num);
+                if (type == 'A') {
+                  str = str.replace(item, (item_num * this.value) + this.behindUnit);
+                } else {
+                  str = str.replace(item, (item_num / this.value) + this.behindUnit);
+                }
+              }
+            })
+            this.exit = str;
+          } else {
+            console.log("000")
+            if (type == 'B') {
+              this.exit = Number(this.entrance) * this.value + this.behindUnit
+            } else {
+              this.exit = Number(this.entrance) / this.value + this.behindUnit
+            }
+          }
+          this.setText()
+        } else {
+          this.$message.error('请填写CSS样式');
+        }
+      }
+    },
+
+
+  })
+</script>
+
+</html>
+<style>
+  .item {
+    width: 100vw;
+    height: 100vh;
+
+  }
+
+  .box-card {
+    margin-top: 40px;
+
+  }
+
+  .entrance {
+    margin-top: 40px;
+  }
+
+  .exit {
+    margin-top: 40px;
+  }
+
+  .success {
+    margin-top: 40px;
+  }
+
+  .flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
